@@ -2,6 +2,7 @@ const express = require("express");
 const dotenv = require("dotenv");
 const cors = require("cors");
 const postRouter = require("./routers/postRouter.js");
+const { userRouter } = require("./routers/userRouter.js");
 
 const PORT = process.env.PORT || 3000;
 
@@ -21,6 +22,7 @@ app.get("/", (req, res) => {
 
 //API routes
 app.use("/api/posts", postRouter);
+app.use("/api/users", userRouter);
 
 // Start the server
 app.listen(PORT, () => {
