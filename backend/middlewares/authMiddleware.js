@@ -1,28 +1,25 @@
 /**
- * Validates the authorId and returns an error response if invalid.
+ * Middleware to validate the authorId in the request body.
  * @param {Object} req - The request object.
  * @param {Object} res - The response object.
- * @returns {boolean} - Returns true if validation passes, otherwise false.
+ * @param {Function} next - The next middleware function.
  */
 function validateAuthorId(req, res, next) {
-  const authorId = parseInt(req.body.authorId, 10);
+  const { authorId } = req.body;
 
-  if (!req.body.authorId) {
-    res.status(400).json({ error: "Author ID is required" });
-    return false;
+  if (authorId === undefined || authorId === null) {
+    return res.status(400).json({ error: "Author ID is required" });
   }
 
-  if (isNaN(authorId)) {
-    res.status(400).json({ error: "Invalid author ID" });
-    return false;
+  const parsedAuthorId = Number(authorId);
+
+  if (!Number.isInteger(parsedAuthorId) || parsedAuthorId <= 0) {
+    return res
+      .status(400)
+      .json({ error: "Author ID must be a positive integer" });
   }
 
-  if (authorId <= 0) {
-    res.status(400).json({ error: "Author ID must be a positive integer" });
-    return false;
-  }
-
-  req.authorId = authorId; // Attach validated authorId to the request object
+  req.authorId = parsedAuthorId;
   next();
 }
 
