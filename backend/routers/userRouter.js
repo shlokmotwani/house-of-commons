@@ -5,11 +5,12 @@ const {
   updateUserProfile,
   deleteUser,
 } = require("../controllers/userController");
+const { authenticateToken } = require("../utils/jwt");
 const userRouter = express.Router();
 
 //TODO: rename userId to authorId in the controller functions and update the imports accordingly
 
-userRouter.get("/", async (req, res) => {
+userRouter.get("/", authenticateToken, async (req, res) => {
   try {
     // Fetch all users
     const users = await fetchUsers();
@@ -20,7 +21,7 @@ userRouter.get("/", async (req, res) => {
   }
 });
 
-userRouter.get("/:id", async (req, res) => {
+userRouter.get("/:id", authenticateToken, async (req, res) => {
   const userId = parseInt(req.params.id, 10);
 
   if (!userId) {
@@ -45,7 +46,7 @@ userRouter.get("/:id", async (req, res) => {
   }
 });
 
-userRouter.get("/:email", async (req, res) => {
+userRouter.get("/:email", authenticateToken, async (req, res) => {
   const email = req.params.email;
 
   if (!email) {
@@ -67,7 +68,7 @@ userRouter.get("/:email", async (req, res) => {
 
 //TODO: implement POST "/" API here
 
-userRouter.put("/:id", async (req, res) => {
+userRouter.put("/:id", authenticateToken, async (req, res) => {
   const userId = parseInt(req.params.id, 10);
   const updatedData = req.body.data;
 
@@ -90,7 +91,7 @@ userRouter.put("/:id", async (req, res) => {
   }
 });
 
-userRouter.delete("/:id", async (req, res) => {
+userRouter.delete("/:id", authenticateToken, async (req, res) => {
   const userId = parseInt(req.params.id, 10);
 
   if (!userId) {

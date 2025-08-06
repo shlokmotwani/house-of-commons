@@ -6,9 +6,10 @@ const {
 } = require("../controllers/postController.js");
 const express = require("express");
 const { validateAuthorId } = require("../middlewares/authMiddleware.js");
+const { authenticateToken } = require("../utils/jwt.js");
 const postRouter = express.Router();
 
-postRouter.get("/", validateAuthorId, async (req, res) => {
+postRouter.get("/", authenticateToken, validateAuthorId, async (req, res) => {
   try {
     // Fetch posts by author ID
     const posts = await fetchPostsByAuthorId(req.authorId);
@@ -19,7 +20,7 @@ postRouter.get("/", validateAuthorId, async (req, res) => {
   }
 });
 
-postRouter.post("/", validateAuthorId, async (req, res) => {
+postRouter.post("/", authenticateToken, validateAuthorId, async (req, res) => {
   const { content } = req.body;
 
   if (!content || typeof content !== "string" || content.trim() === "") {
@@ -38,38 +39,48 @@ postRouter.post("/", validateAuthorId, async (req, res) => {
   }
 });
 
-postRouter.put("/:id", validateAuthorId, async (req, res) => {
-const id = parseInt(req.params.id, 10);
-  const { content } = req.body;
+postRouter.put(
+  "/:id",
+  authenticateToken,
+  validateAuthorId,
+  async (req, res) => {
+    const id = parseInt(req.params.id, 10);
+    const { content } = req.body;
 
-  if (!content || typeof content !== "string" || content.trim() === "") {
-    return res
-      .status(400)
-      .json({ error: "Content is required and must be a non-empty string" });
-  }
+    if (!content || typeof content !== "string" || content.trim() === "") {
+      return res
+        .status(400)
+        .json({ error: "Content is required and must be a non-empty string" });
+    }
 
-  try {
-    // Update the post
-    const updatedPost = await updatePost(id, content);
-    return res.json(updatedPost);
-  } catch (error) {
-    console.error("Error updating post:", error);
-    return res.status(500).json({ error: "Failed to update post" });
+    try {
+      // Update the post
+      const updatedPost = await updatePost(id, content);
+      return res.json(updatedPost);
+    } catch (error) {
+      console.error("Error updating post:", error);
+      return res.status(500).json({ error: "Failed to update post" });
+    }
   }
-});
+);
 
 //TODO: check if the authorId matches the post's authorId before deleting
-postRouter.delete("/:id", validateAuthorId, async (req, res) => {
-  const id = parseInt(req.params.id, 10);
+postRouter.delete(
+  "/:id",
+  authenticateToken,
+  validateAuthorId,
+  async (req, res) => {
+    const id = parseInt(req.params.id, 10);
 
-  try {
-    // Delete the post
-    const result = await deletePost(id);
-    return res.status(result.status).json(result);
-  } catch (error) {
-    console.error("Error deleting post:", error);
-    return res.status(500).json({ error: "Failed to delete post" });
+    try {
+      // Delete the post
+      const result = await deletePost(id);
+      return res.status(result.status).json(result);
+    } catch (error) {
+      console.error("Error deleting post:", error);
+      return res.status(500).json({ error: "Failed to delete post" });
+    }
   }
-});
+);
 
 module.exports = postRouter;
