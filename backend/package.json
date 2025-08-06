@@ -4,5 +4,12 @@
     "dotenv": "^17.2.1",
     "express": "^5.1.0",
     "nodemon": "^3.1.10"
+  },
+  "devDependencies": {
+    "@prisma/client": "^6.13.0",
+    "prisma": "^6.13.0"
+  },
+  "scripts": {
+    "seed": "node db/seed.js"
   }
 }
