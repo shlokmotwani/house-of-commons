@@ -1,8 +1,7 @@
-// This module provides functions to generate, verify, and authenticate JWT tokens.
+// JWT utility functions: generate, verify, and authenticate tokens.
 
 const jwt = require("jsonwebtoken");
-const dotenv = require("dotenv");
-dotenv.config();
+require("dotenv").config();
 
 const TOKEN_EXPIRY_DURATION = "1h";
 const JWT_SECRET_KEY = process.env.JWT_SECRET;
@@ -11,33 +10,26 @@ if (!JWT_SECRET_KEY) {
   throw new Error("JWT_SECRET is not defined in environment variables");
 }
 
-// Function to generate a JWT token
-function generateToken(user) {
-  const payload = {
-    id: user.id,
-    email: user.email,
-  };
-
-  const options = {
+// Generate a JWT token for a user
+function generateToken({ id, email }) {
+  return jwt.sign({ id, email }, JWT_SECRET_KEY, {
     expiresIn: TOKEN_EXPIRY_DURATION,
-  };
-
-  return jwt.sign(payload, JWT_SECRET_KEY, options);
+  });
 }
 
-// Function to verify a JWT token
+// Verify a JWT token and return the decoded payload or null
 function verifyToken(token) {
   try {
     return jwt.verify(token, JWT_SECRET_KEY);
-  } catch (error) {
-    console.error("Token verification failed:", error);
+  } catch {
     return null;
   }
 }
 
-// Middleware to authenticate JWT token
+// Express middleware to authenticate JWT token
 function authenticateToken(req, res, next) {
-  const token = req.headers["authorization"]?.split(" ")[1];
+  const authHeader = req.headers["authorization"];
+  const token = authHeader && authHeader.split(" ")[1];
 
   if (!token) {
     return res.status(401).json({ error: "Access denied. No token provided." });
@@ -48,7 +40,7 @@ function authenticateToken(req, res, next) {
     return res.status(403).json({ error: "Invalid token." });
   }
 
-  req.user = decoded; // Attach user info to request
+  req.user = decoded;
   next();
 }
 
