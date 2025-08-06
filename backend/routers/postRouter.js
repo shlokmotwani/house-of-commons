@@ -1,3 +1,4 @@
+const express = require("express");
 const {
   fetchPostsByAuthorId,
   addPost,
@@ -5,65 +6,61 @@ const {
   deletePost,
   fetchPostByPostId,
 } = require("../controllers/postController.js");
-const express = require("express");
 const { validateAuthorId } = require("../middlewares/authMiddleware.js");
 const { authenticateToken } = require("../utils/jwt.js");
+
 const postRouter = express.Router();
 
-//TODO: User Authorization
-
+// GET all posts by the authenticated author
 postRouter.get("/", authenticateToken, validateAuthorId, async (req, res) => {
   try {
     const authorId = req.user.id;
-    // Fetch posts by author ID
     const posts = await fetchPostsByAuthorId(authorId);
-    return res.json(posts);
+    res.json(posts);
   } catch (error) {
     console.error("Error fetching posts:", error);
-    return res.status(500).json({ error: "Failed to fetch posts" });
+    res.status(500).json({ error: "Failed to fetch posts" });
   }
 });
 
+// GET all posts by a specific authorId
 postRouter.get("/:authorId", authenticateToken, async (req, res) => {
   const authorId = parseInt(req.params.authorId, 10);
-  if (!authorId || isNaN(authorId)) {
+  if (isNaN(authorId)) {
     return res
       .status(400)
       .json({ error: "Author ID is required and must be a number" });
   }
-
   try {
-    // Fetch post by author ID
-    const post = await fetchPostsByAuthorId(authorId);
-    if (!post) {
-      return res.status(404).json({ error: "Post not found" });
+    const posts = await fetchPostsByAuthorId(authorId);
+    if (!posts) {
+      return res.status(404).json({ error: "Posts not found" });
     }
-    return res.json(post);
+    res.json(posts);
   } catch (error) {
-    console.error("Error fetching post:", error);
-    return res.status(500).json({ error: "Failed to fetch post" });
+    console.error("Error fetching posts:", error);
+    res.status(500).json({ error: "Failed to fetch posts" });
   }
 });
 
+// POST a new post
 postRouter.post("/", authenticateToken, validateAuthorId, async (req, res) => {
   const { content } = req.body;
-
-  if (!content || typeof content !== "string" || content.trim() === "") {
+  if (!content || typeof content !== "string" || !content.trim()) {
     return res
       .status(400)
       .json({ error: "Content is required and must be a non-empty string" });
   }
-
   try {
-    // Add a new post
     const newPost = await addPost(content, req.authorId);
-    return res.status(201).json(newPost);
+    res.status(201).json(newPost);
   } catch (error) {
     console.error("Error adding post:", error);
-    return res.status(500).json({ error: "Failed to add post" });
+    res.status(500).json({ error: "Failed to add post" });
   }
 });
 
+// PUT update a post
 postRouter.put(
   "/:id",
   authenticateToken,
@@ -71,39 +68,34 @@ postRouter.put(
   async (req, res) => {
     const id = parseInt(req.params.id, 10);
     const { content } = req.body;
-
-    if (!content || typeof content !== "string" || content.trim() === "") {
+    if (!content || typeof content !== "string" || !content.trim()) {
       return res
         .status(400)
         .json({ error: "Content is required and must be a non-empty string" });
     }
-
     try {
-      // Update the post
       const updatedPost = await updatePost(id, content);
-      return res.json(updatedPost);
+      res.json(updatedPost);
     } catch (error) {
       console.error("Error updating post:", error);
-      return res.status(500).json({ error: "Failed to update post" });
+      res.status(500).json({ error: "Failed to update post" });
     }
   }
 );
 
-//TODO: check if the authorId matches the post's authorId before deleting
+// DELETE a post (TODO: check authorId matches post's authorId before deleting)
 postRouter.delete(
   "/:id",
   authenticateToken,
   validateAuthorId,
   async (req, res) => {
     const id = parseInt(req.params.id, 10);
-
     try {
-      // Delete the post
       const result = await deletePost(id);
-      return res.status(result.status).json(result);
+      res.status(result.status).json(result);
     } catch (error) {
       console.error("Error deleting post:", error);
-      return res.status(500).json({ error: "Failed to delete post" });
+      res.status(500).json({ error: "Failed to delete post" });
     }
   }
 );

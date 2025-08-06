@@ -2,53 +2,50 @@ const express = require("express");
 const {
   fetchUsers,
   fetchUserById,
+  fetchUserByEmail,
   updateUserProfile,
   deleteUser,
 } = require("../controllers/userController");
 const { authenticateToken } = require("../utils/jwt");
+
 const userRouter = express.Router();
 
-//TODO: rename userId to authorId in the controller functions and update the imports accordingly
+// TODO: rename userId to authorId in the controller functions and update the imports accordingly
+// TODO: User Authorization
 
-//TODO: User Authorization
-
+// Fetch all users
 userRouter.get("/", authenticateToken, async (req, res) => {
   try {
-    // Fetch all users
     const users = await fetchUsers();
-    return res.json(users);
+    res.json(users);
   } catch (error) {
     console.error("Error fetching users:", error);
-    return res.status(500).json({ error: "Failed to fetch users" });
+    res.status(500).json({ error: "Failed to fetch users" });
   }
 });
 
-userRouter.get("/:id", authenticateToken, async (req, res) => {
+// Fetch user by ID
+userRouter.get("/id/:id", authenticateToken, async (req, res) => {
   const userId = parseInt(req.params.id, 10);
 
-  if (!userId) {
-    return res.status(400).json({ error: "User ID is required" });
-  }
-
-  // Validate user ID
-  if (isNaN(userId)) {
+  if (!userId || isNaN(userId)) {
     return res.status(400).json({ error: "Invalid user ID" });
   }
 
   try {
-    // Fetch user by ID
     const user = await fetchUserById(userId);
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
-    return res.json(user);
+    res.json(user);
   } catch (error) {
     console.error("Error fetching user:", error);
-    return res.status(500).json({ error: "Failed to fetch user" });
+    res.status(500).json({ error: "Failed to fetch user" });
   }
 });
 
-userRouter.get("/:email", authenticateToken, async (req, res) => {
+// Fetch user by email
+userRouter.get("/email/:email", authenticateToken, async (req, res) => {
   const email = req.params.email;
 
   if (!email) {
@@ -56,63 +53,50 @@ userRouter.get("/:email", authenticateToken, async (req, res) => {
   }
 
   try {
-    // Fetch user by email
     const user = await fetchUserByEmail(email);
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
-    return res.json(user);
+    res.json(user);
   } catch (error) {
     console.error("Error fetching user by email:", error);
-    return res.status(500).json({ error: "Failed to fetch user by email" });
+    res.status(500).json({ error: "Failed to fetch user by email" });
   }
 });
 
+// Update user profile
 userRouter.put("/:id", authenticateToken, async (req, res) => {
   const userId = parseInt(req.params.id, 10);
   const updatedData = req.body.data;
 
-  if (!userId) {
-    return res.status(400).json({ error: "User ID is required" });
-  }
-
-  // Validate user ID
-  if (isNaN(userId)) {
+  if (!userId || isNaN(userId)) {
     return res.status(400).json({ error: "Invalid user ID" });
   }
 
   try {
-    // Update user profile
     const updatedUser = await updateUserProfile(userId, updatedData);
-    return res.json(updatedUser);
+    res.json(updatedUser);
   } catch (error) {
     console.error("Error updating user profile:", error);
-    return res.status(500).json({ error: "Failed to update user profile" });
+    res.status(500).json({ error: "Failed to update user profile" });
   }
 });
 
+// Delete user
 userRouter.delete("/:id", authenticateToken, async (req, res) => {
   const userId = parseInt(req.params.id, 10);
 
-  if (!userId) {
-    return res.status(400).json({ error: "User ID is required" });
-  }
-
-  // Validate user ID
-  if (isNaN(userId)) {
+  if (!userId || isNaN(userId)) {
     return res.status(400).json({ error: "Invalid user ID" });
   }
 
   try {
-    // Delete user
     // TODO: check if the user has any posts or comments before deleting
-    // If the user has posts or comments, handle that case accordingly, such as deleting those related records first.
-
     const result = await deleteUser(userId);
-    return res.status(result.status).json(result);
+    res.status(result.status).json(result);
   } catch (error) {
     console.error("Error deleting user:", error);
-    return res.status(500).json({ error: "Failed to delete user" });
+    res.status(500).json({ error: "Failed to delete user" });
   }
 });
 

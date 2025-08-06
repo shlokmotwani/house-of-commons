@@ -1,72 +1,63 @@
 const express = require("express");
-const { createUser, fetchUserByEmail } = require("../controllers/userController");
+const {
+  createUser,
+  fetchUserByEmail,
+} = require("../controllers/userController");
 const { hashPassword, comparePassword } = require("../utils/hashPassword");
 const { generateToken } = require("../utils/jwt");
+
 const authRouter = express.Router();
+
+// Helper to handle errors
+const handleError = (res, status, error) => res.status(status).json({ error });
 
 authRouter.post("/register", async (req, res) => {
   const { name, email, password } = req.body;
-
   if (!name || !email || !password) {
-    return res.status(400).json({ error: "All fields are required" });
+    return handleError(res, 400, "All fields are required");
   }
 
   try {
     const hashedPassword = await hashPassword(password);
-    if (!hashedPassword) {
-      return res.status(500).json({ error: "Failed to hash password" });
-    }
+    if (!hashedPassword)
+      return handleError(res, 500, "Failed to hash password");
 
     const user = await createUser({ name, email, password: hashedPassword });
 
-    if (user.status === 400) {
-      return res.status(400).json({ error: user.error });
-    }
-    if (user.status === 409) {
-      return res.status(409).json({ error: user.error });
-    }
-    if (user.status === 500) {
-      console.error("Error creating user:", user.error);
-      return res.status(500).json({ error: "Internal server error" });
+    if (user.status) {
+      const status = [400, 409, 500].includes(user.status) ? user.status : 500;
+      const errorMsg = user.error || "Internal server error";
+      if (status === 500) console.error("Error creating user:", errorMsg);
+      return handleError(res, status, errorMsg);
     }
 
     return res.status(201).json({ message: "User registered successfully" });
   } catch (error) {
-    console.error("Error checking existing user:", error);
-    return res.status(500).json({ error: "Internal server error" });
+    console.error("Error registering user:", error);
+    return handleError(res, 500, "Internal server error");
   }
 });
 
 authRouter.post("/login", async (req, res) => {
   const { email, password } = req.body;
-
   if (!email || !password) {
-    return res.status(400).json({ error: "Email and password are required" });
+    return handleError(res, 400, "Email and password are required");
   }
 
   try {
     const user = await fetchUserByEmail(email);
-    if (!user) {
-      return res.status(404).json({ error: "User not found" });
-    }
+    if (!user) return handleError(res, 404, "User not found");
 
     const isMatch = await comparePassword(password, user.password);
-    if (!isMatch) {
-      return res.status(401).json({ error: "Invalid credentials" });
-    }
+    if (!isMatch) return handleError(res, 401, "Invalid credentials");
 
-    // Generate a token for the user
     const token = generateToken(user);
+    if (!token) return handleError(res, 500, "Failed to generate token");
 
-    if (!token) {
-      return res.status(500).json({ error: "Failed to generate token" });
-    }
-
-    // Send the token back to the client
-     return res.status(200).json({ message: "Login successful", token });
+    return res.status(200).json({ message: "Login successful", token });
   } catch (error) {
     console.error("Error logging in:", error);
-    return res.status(500).json({ error: "Internal server error" });
+    return handleError(res, 500, "Internal server error");
   }
 });
 
