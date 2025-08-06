@@ -24,17 +24,17 @@ postRouter.get("/", authenticateToken, validateAuthorId, async (req, res) => {
   }
 });
 
-postRouter.get("/:id", authenticateToken, async (req, res) => {
-  const postId = parseInt(req.params.id, 10);
-  if (!postId || isNaN(postId)) {
+postRouter.get("/:authorId", authenticateToken, async (req, res) => {
+  const authorId = parseInt(req.params.authorId, 10);
+  if (!authorId || isNaN(authorId)) {
     return res
       .status(400)
-      .json({ error: "Post ID is required and must be a number" });
+      .json({ error: "Author ID is required and must be a number" });
   }
 
   try {
-    // Fetch post by ID
-    const post = await fetchPostByPostId(postId);
+    // Fetch post by author ID
+    const post = await fetchPostsByAuthorId(authorId);
     if (!post) {
       return res.status(404).json({ error: "Post not found" });
     }
