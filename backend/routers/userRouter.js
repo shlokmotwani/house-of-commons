@@ -7,6 +7,8 @@ const {
 } = require("../controllers/userController");
 const userRouter = express.Router();
 
+//TODO: rename userId to authorId in the controller functions and update the imports accordingly
+
 userRouter.get("/", async (req, res) => {
   try {
     // Fetch all users
@@ -42,6 +44,8 @@ userRouter.get("/:id", async (req, res) => {
     return res.status(500).json({ error: "Failed to fetch user" });
   }
 });
+
+//TODO: implement POST "/" API here
 
 userRouter.put("/:id", async (req, res) => {
   const userId = parseInt(req.params.id, 10);
