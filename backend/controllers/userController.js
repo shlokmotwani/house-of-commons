@@ -24,6 +24,49 @@ const fetchUserById = async (userId) => {
   }
 };
 
+//Function to fetch a user by email
+const fetchUserByEmail = async (email) => {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { email },
+    });
+    return user;
+  } catch (error) {
+    console.error("Error fetching user by email:", error);
+    return { status: 500, error: "Failed to fetch user by email" };
+  }
+};
+
+// Function to create a user
+const createUser = async (userData) => {
+  try {
+    const { name, email, password } = userData;
+
+    // Validate required fields
+    if (!name || !email || !password) {
+      return { status: 400, error: "Name, email, and password are required" };
+    }
+
+    // Check if user already exists
+    const existingUser = await fetchUserByEmail(email);
+    if (existingUser) {
+      return { status: 409, error: "User with this email already exists" };
+    }
+
+    const newUser = await prisma.user.create({
+      data: {
+        name,
+        email,
+        password, // Assume password is already hashed
+      },
+    });
+    return newUser;
+  } catch (error) {
+    console.error("Error creating user:", error);
+    return { status: 500, error: "Failed to create user" };
+  }
+};
+
 // Function to update a user's profile
 const updateUserProfile = async (userId, updatedData) => {
   try {
@@ -62,6 +105,8 @@ const deleteUser = async (userId) => {
 module.exports = {
   fetchUsers,
   fetchUserById,
+  fetchUserByEmail,
+  createUser,
   updateUserProfile,
   deleteUser,
 };

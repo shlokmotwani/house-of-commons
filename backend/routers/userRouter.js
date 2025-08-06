@@ -45,6 +45,26 @@ userRouter.get("/:id", async (req, res) => {
   }
 });
 
+userRouter.get("/:email", async (req, res) => {
+  const email = req.params.email;
+
+  if (!email) {
+    return res.status(400).json({ error: "Email is required" });
+  }
+
+  try {
+    // Fetch user by email
+    const user = await fetchUserByEmail(email);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    return res.json(user);
+  } catch (error) {
+    console.error("Error fetching user by email:", error);
+    return res.status(500).json({ error: "Failed to fetch user by email" });
+  }
+});
+
 //TODO: implement POST "/" API here
 
 userRouter.put("/:id", async (req, res) => {

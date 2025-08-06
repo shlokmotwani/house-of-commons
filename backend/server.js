@@ -3,6 +3,7 @@ const dotenv = require("dotenv");
 const cors = require("cors");
 const postRouter = require("./routers/postRouter.js");
 const { userRouter } = require("./routers/userRouter.js");
+const { authRouter } = require("./routers/authRouter.js");
 
 const PORT = process.env.PORT || 3000;
 
@@ -15,12 +16,12 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-
 app.get("/", (req, res) => {
   res.send("Hello, World!");
 });
 
 //API routes
+app.use("/api/auth", authRouter);
 app.use("/api/posts", postRouter);
 app.use("/api/users", userRouter);
 
