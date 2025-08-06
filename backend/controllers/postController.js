@@ -1,5 +1,17 @@
 const prisma = require("../db/prisma.js");
 
+const fetchPostByPostId = async (postId) => {
+  try {
+    const post = await prisma.post.findUnique({
+      where: { id: postId },
+    });
+    return post;
+  } catch (error) {
+    console.error("Error fetching post:", error);
+    return { status: 500, error: "Failed to fetch post" };
+  }
+};
+
 // function to handle fetching of posts by author ID
 const fetchPostsByAuthorId = async (authorId) => {
   try {
@@ -58,4 +70,10 @@ const deletePost = async (postId) => {
   }
 };
 
-module.exports = { fetchPostsByAuthorId, addPost, updatePost, deletePost };
+module.exports = {
+  fetchPostByPostId,
+  fetchPostsByAuthorId,
+  addPost,
+  updatePost,
+  deletePost,
+};

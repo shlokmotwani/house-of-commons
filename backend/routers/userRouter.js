@@ -10,6 +10,8 @@ const userRouter = express.Router();
 
 //TODO: rename userId to authorId in the controller functions and update the imports accordingly
 
+//TODO: User Authorization
+
 userRouter.get("/", authenticateToken, async (req, res) => {
   try {
     // Fetch all users
@@ -65,8 +67,6 @@ userRouter.get("/:email", authenticateToken, async (req, res) => {
     return res.status(500).json({ error: "Failed to fetch user by email" });
   }
 });
-
-//TODO: implement POST "/" API here
 
 userRouter.put("/:id", authenticateToken, async (req, res) => {
   const userId = parseInt(req.params.id, 10);
